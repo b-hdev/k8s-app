@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-ts
+
+data:
+  APP_VERSION: v3.0.1
