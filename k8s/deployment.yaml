@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: app-ts
+  namespace: app-ts
 
 spec:
   replicas: 2
@@ -20,7 +21,7 @@ spec:
     spec:
       containers:
         - name: app-ts
-          image: cyberplank/app-ts:v4
+          image: cyberplank/app-ts:v9
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
@@ -41,11 +42,44 @@ spec:
                 #         key: api-key
           ports:
             - containerPort: 3000
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            failureThreshold: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+            periodSeconds: 10
+            initialDelaySeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 3000
+            failureThreshold: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+            periodSeconds: 15
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            failureThreshold: 5
+            successThreshold: 1
+            timeoutSeconds: 1
+            periodSeconds: 10
+            initialDelaySeconds: 5
           resources:
             requests:
-              cpu: 100m
+              cpu: 200m
               memory: 128Mi
             limits:
-              cpu: 200m
+              cpu: 400m
               memory: 192Mi
-              
+          volumeMounts:
+            - name: app-ts-data
+              mountPath: /usr/src/app/uploads
+      volumes:
+        - name: app-ts-data
+          persistentVolumeClaim:
+            claimName: pvc-fast
